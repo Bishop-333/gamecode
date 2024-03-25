@@ -38,6 +38,15 @@ GAME OPTIONS MENU
 #define ART_BACK1				"menu/" MENU_ART_DIR "/back_1"
 
 #define ID_BACK					127
+#define ID_FALLING				128
+#define ID_FOV					129
+#define ID_FOOTSTEPS				130
+#define ID_SWITCH				131
+#define ID_STRAFE				132
+#define ID_INVISIBILITY				133
+#define ID_VOTING				134
+#define ID_SELFDAMAGE				135
+
 
 typedef struct {
 	menuframework_s		menu;
@@ -45,6 +54,15 @@ typedef struct {
 	menutext_s			banner;
 	menubitmap_s		framel;
 	menubitmap_s		framer;
+
+	menuradiobutton_s	fallingDamage;
+	menuradiobutton_s	fixedFOV;
+	menuradiobutton_s	footsteps;
+	menuradiobutton_s	instantWeaponChange;
+	menuradiobutton_s	strafeJumping;
+	menuradiobutton_s	totalInvisibility;
+	menuradiobutton_s	lightVoting;
+	menuradiobutton_s	weaponsSelfDamage;
 
 	menubitmap_s		back;
 } dmflagsOptions_t;
