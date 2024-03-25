@@ -829,7 +829,7 @@ typedef struct {
 	menulist_s			weaponMode;
 	menulist_s			weaponArenaWeapon;
 	menulist_s			awardPushing;
-	menufield_s			dmflags;
+	menulist_s			dmflags;
 
 	// Team-based options
 	menuradiobutton_s	friendlyfire;
@@ -2327,17 +2327,14 @@ static void ServerOptions_MenuInit( qboolean multiplayer ) {
 	s_serveroptions.awardPushing.generic.statusbar		= ServerOptions_StatusBar_AwardPushing;
 
 	y += BIGCHAR_HEIGHT+2;
-	s_serveroptions.dmflags.generic.type			= MTYPE_FIELD;
+	s_serveroptions.dmflags.generic.type			= MTYPE_SPINCONTROL;
 	s_serveroptions.dmflags.generic.flags			= QMF_PULSEIFFOCUS|QMF_SMALLFONT;
 	s_serveroptions.dmflags.generic.id		= ID_DMFLAGS;
 	s_serveroptions.dmflags.generic.name			= "DMflags";
 	s_serveroptions.dmflags.generic.ownerdraw	= StartServer_DrawDMflags;
 	s_serveroptions.dmflags.generic.x				= OPTIONS_X;
 	s_serveroptions.dmflags.generic.y				= y;
-	s_serveroptions.dmflags.generic.left		= 192 - 8;
-	s_serveroptions.dmflags.generic.top		= y - 8;
-	s_serveroptions.dmflags.generic.right	= 192 + 200;
-	s_serveroptions.dmflags.generic.bottom	= y + 2 * PROP_HEIGHT;
+	s_serveroptions.dmflags.itemnames				= awardPushing_list;
 
 	if(UI_IsATeamGametype(s_serveroptions.gametype)) {
 		if(UI_IsARoundBasedGametype(s_serveroptions.gametype)) {
