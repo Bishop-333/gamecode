@@ -64,7 +64,6 @@ START SERVER MENU *****
 #define ID_STARTSERVERNEXT		22
 
 #define ID_AUTONEXTMAP                  23
-#define ID_DMFLAGS                      24
 
 typedef struct {
 	menuframework_s	menu;
@@ -432,29 +431,6 @@ static void StartServer_GametypeEvent( void* ptr, int event ) {
 
 /*
 =================
-StartServer_DrawDMflags
-=================
-*/
-static void StartServer_DrawDMflags( void *self ) {
-	menufield_s		*f;
-	qboolean		focus;
-	float			*color;
-
-	focus = (f->generic.parent->cursor == f->generic.menuPosition);
-	color = text_color_normal;
-	if( focus ) {
-		color = text_color_highlight;
-	}
-
-	f = (menufield_s*)self;
-	focus = (f->generic.parent->cursor == f->generic.menuPosition);
-
-	UI_DrawString( f->generic.x - 8 - SMALLCHAR_WIDTH, f->generic.y, f->generic.name, UI_RIGHT|UI_SMALLFONT, color );
-}
-
-
-/*
-=================
 StartServer_MenuEvent
 =================
 */
@@ -486,10 +462,6 @@ static void StartServer_MenuEvent( void* ptr, int event ) {
             case ID_AUTONEXTMAP:
                 //trap_Cvar_SetValue( "cg_alwaysWeaponBar", s_preferences.alwaysweaponbar.curvalue );
                 trap_Cvar_SetValue( "g_autonextmap", s_startserver.autonextmap.curvalue );
-                break;
-
-            case ID_DMFLAGS:
-                UI_DMflagsOptionsMenu();
                 break;
 
 	case ID_STARTSERVERBACK:
@@ -829,7 +801,6 @@ typedef struct {
 	menulist_s			weaponMode;
 	menulist_s			weaponArenaWeapon;
 	menulist_s			awardPushing;
-	menulist_s			dmflags;
 
 	// Team-based options
 	menuradiobutton_s	friendlyfire;
@@ -2326,16 +2297,6 @@ static void ServerOptions_MenuInit( qboolean multiplayer ) {
 	s_serveroptions.awardPushing.itemnames				= awardPushing_list;
 	s_serveroptions.awardPushing.generic.statusbar		= ServerOptions_StatusBar_AwardPushing;
 
-	y += BIGCHAR_HEIGHT+2;
-	s_serveroptions.dmflags.generic.type			= MTYPE_SPINCONTROL;
-	s_serveroptions.dmflags.generic.flags			= QMF_PULSEIFFOCUS|QMF_SMALLFONT;
-	s_serveroptions.dmflags.generic.id		= ID_DMFLAGS;
-	s_serveroptions.dmflags.generic.name			= "DMflags";
-	s_serveroptions.dmflags.generic.ownerdraw	= StartServer_DrawDMflags;
-	s_serveroptions.dmflags.generic.x				= OPTIONS_X;
-	s_serveroptions.dmflags.generic.y				= y;
-	s_serveroptions.dmflags.itemnames				= awardPushing_list;
-
 	if(UI_IsATeamGametype(s_serveroptions.gametype)) {
 		if(UI_IsARoundBasedGametype(s_serveroptions.gametype)) {
 			y += BIGCHAR_HEIGHT+2;
@@ -2581,7 +2542,6 @@ static void ServerOptions_MenuInit( qboolean multiplayer ) {
 	Menu_AddItem( &s_serveroptions.menu, &s_serveroptions.weaponMode );
 	Menu_AddItem( &s_serveroptions.menu, &s_serveroptions.weaponArenaWeapon );
 	Menu_AddItem( &s_serveroptions.menu, &s_serveroptions.awardPushing );
-	Menu_AddItem( &s_serveroptions.menu, &s_serveroptions.dmflags );
 	if(UI_IsATeamGametype(s_serveroptions.gametype)) {
 		if (UI_IsARoundBasedGametype(s_serveroptions.gametype)) {
 			Menu_AddItem( &s_serveroptions.menu, &s_serveroptions.eliminationDamage );
