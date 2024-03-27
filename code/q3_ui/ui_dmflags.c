@@ -38,14 +38,14 @@ GAME OPTIONS MENU
 #define ART_BACK1				"menu/" MENU_ART_DIR "/back_1"
 
 #define ID_BACK					127
-#define ID_FALLING				128
-#define ID_FOV					129
+#define ID_FALLINGDAMAGE			128
+#define ID_FIXEDFOV				129
 #define ID_FOOTSTEPS				130
-#define ID_SWITCH				131
+#define ID_WEAPONSWITCH				131
 #define ID_STRAFE				132
 #define ID_INVISIBILITY				133
-#define ID_VOTING				134
-#define ID_SELFDAMAGE				135
+#define ID_LIGHTVOTING				134
+#define ID_WEAPONSSELFDAMAGE			135
 
 
 typedef struct {
@@ -78,6 +78,46 @@ static void DMflagsOptions_Event( void* ptr, int notification ) {
 	}
 
 	switch( ((menucommon_s*)ptr)->id ) {
+	case ID_FALLINGDAMAGE:
+		UI_PopMenu();
+		break;
+	}
+
+	case ID_FIXEDFOV:
+		UI_PopMenu();
+		break;
+	}
+
+	case ID_FOOTSTEPS:
+		UI_PopMenu();
+		break;
+	}
+
+	case ID_WEAPONSWITCH:
+		UI_PopMenu();
+		break;
+	}
+
+	case ID_STRAFE:
+		UI_PopMenu();
+		break;
+	}
+
+	case ID_INVISIBILITY:
+		UI_PopMenu();
+		break;
+	}
+
+	case ID_LIGHTVOTING:
+		UI_PopMenu();
+		break;
+	}
+
+	case ID_WEAPONSSELFDAMAGE:
+		UI_PopMenu();
+		break;
+	}
+
 	case ID_BACK:
 		UI_PopMenu();
 		break;
@@ -116,6 +156,78 @@ static void DMflagsOptions_MenuInit( void ) {
 	dmflagsOptions_s.framer.generic.y		= 76;
 	dmflagsOptions_s.framer.width			= 256;
 	dmflagsOptions_s.framer.height			= 334;
+
+	y += BIGCHAR_HEIGHT+2;
+	dmflagsOptions_s.fallingDamage.generic.type		= MTYPE_RADIOBUTTON;
+	dmflagsOptions_s.fallingDamage.generic.name		= "No Falling Damage:";
+	dmflagsOptions_s.fallingDamage.generic.flags		= QMF_PULSEIFFOCUS|QMF_SMALLFONT;
+	dmflagsOptions_s.fallingDamage.generic.callback	= DMflagsOptions_Event;
+	dmflagsOptions_s.fallingDamage.generic.id		= ID_FALLINGDAMAGE;
+	dmflagsOptions_s.fallingDamage.generic.x		= 400;
+	dmflagsOptions_s.fallingDamage.generic.y		= y;
+
+	y += BIGCHAR_HEIGHT+2;
+	dmflagsOptions_s.fixedFOV.generic.type		= MTYPE_RADIOBUTTON;
+	dmflagsOptions_s.fixedFOV.generic.name		= "Fixed FOV:";
+	dmflagsOptions_s.fixedFOV.generic.flags		= QMF_PULSEIFFOCUS|QMF_SMALLFONT;
+	dmflagsOptions_s.fixedFOV.generic.callback	= DMflagsOptions_Event;
+	dmflagsOptions_s.fixedFOV.generic.id		= ID_FIXEDFOV;
+	dmflagsOptions_s.fixedFOV.generic.x		= 400;
+	dmflagsOptions_s.fixedFOV.generic.y		= y;
+
+	y += BIGCHAR_HEIGHT+2;
+	dmflagsOptions_s.footsteps.generic.type		= MTYPE_RADIOBUTTON;
+	dmflagsOptions_s.footsteps.generic.name		= "No Footsteps:";
+	dmflagsOptions_s.footsteps.generic.flags		= QMF_PULSEIFFOCUS|QMF_SMALLFONT;
+	dmflagsOptions_s.footsteps.generic.callback	= DMflagsOptions_Event;
+	dmflagsOptions_s.footsteps.generic.id		= ID_FOOTSTEPS;
+	dmflagsOptions_s.footsteps.generic.x		= 400;
+	dmflagsOptions_s.footsteps.generic.y		= y;
+
+	y += BIGCHAR_HEIGHT+2;
+	dmflagsOptions_s.instantWeaponChange.generic.type		= MTYPE_RADIOBUTTON;
+	dmflagsOptions_s.instantWeaponChange.generic.name		= "Instant Weapon Change:";
+	dmflagsOptions_s.instantWeaponChange.generic.flags		= QMF_PULSEIFFOCUS|QMF_SMALLFONT;
+	dmflagsOptions_s.instantWeaponChange.generic.callback	= DMflagsOptions_Event;
+	dmflagsOptions_s.instantWeaponChange.generic.id		= ID_WEAPONSWITCH;
+	dmflagsOptions_s.instantWeaponChange.generic.x		= 400;
+	dmflagsOptions_s.instantWeaponChange.generic.y		= y;
+
+	y += BIGCHAR_HEIGHT+2;
+	dmflagsOptions_s.strafeJumping.generic.type		= MTYPE_RADIOBUTTON;
+	dmflagsOptions_s.strafeJumping.generic.name		= "No Strafe Jumping:";
+	dmflagsOptions_s.strafeJumping.generic.flags		= QMF_PULSEIFFOCUS|QMF_SMALLFONT;
+	dmflagsOptions_s.strafeJumping.generic.callback	= DMflagsOptions_Event;
+	dmflagsOptions_s.strafeJumping.generic.id		= ID_STRAFE;
+	dmflagsOptions_s.strafeJumping.generic.x		= 400;
+	dmflagsOptions_s.strafeJumping.generic.y		= y;
+
+	y += BIGCHAR_HEIGHT+2;
+	dmflagsOptions_s.totalInvisibility.generic.type		= MTYPE_RADIOBUTTON;
+	dmflagsOptions_s.totalInvisibility.generic.name		= "Total Invisibility:";
+	dmflagsOptions_s.totalInvisibility.generic.flags		= QMF_PULSEIFFOCUS|QMF_SMALLFONT;
+	dmflagsOptions_s.totalInvisibility.generic.callback	= DMflagsOptions_Event;
+	dmflagsOptions_s.totalInvisibility.generic.id		= ID_INVISIBILITY;
+	dmflagsOptions_s.totalInvisibility.generic.x		= 400;
+	dmflagsOptions_s.totalInvisibility.generic.y		= y;
+
+	y += BIGCHAR_HEIGHT+2;
+	dmflagsOptions_s.lightVoting.generic.type		= MTYPE_RADIOBUTTON;
+	dmflagsOptions_s.lightVoting.generic.name		= "Light Voting:";
+	dmflagsOptions_s.lightVoting.generic.flags		= QMF_PULSEIFFOCUS|QMF_SMALLFONT;
+	dmflagsOptions_s.lightVoting.generic.callback	= DMflagsOptions_Event;
+	dmflagsOptions_s.lightVoting.generic.id		= ID_LIGHTVOTING;
+	dmflagsOptions_s.lightVoting.generic.x		= 400;
+	dmflagsOptions_s.lightVoting.generic.y		= y;
+
+	y += BIGCHAR_HEIGHT+2;
+	dmflagsOptions_s.weaponsSelfDamage.generic.type		= MTYPE_RADIOBUTTON;
+	dmflagsOptions_s.weaponsSelfDamage.generic.name		= "No Weapons Self Damage:";
+	dmflagsOptions_s.weaponsSelfDamage.generic.flags		= QMF_PULSEIFFOCUS|QMF_SMALLFONT;
+	dmflagsOptions_s.weaponsSelfDamage.generic.callback	= DMflagsOptions_Event;
+	dmflagsOptions_s.weaponsSelfDamage.generic.id		= ID_WEAPONSSELFDAMAGE;
+	dmflagsOptions_s.weaponsSelfDamage.generic.x		= 400;
+	dmflagsOptions_s.weaponsSelfDamage.generic.y		= y;
 
 	dmflagsOptions_s.back.generic.type		= MTYPE_BITMAP;
 	dmflagsOptions_s.back.generic.name		= ART_BACK0;
