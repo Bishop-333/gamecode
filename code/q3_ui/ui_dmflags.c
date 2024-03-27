@@ -69,9 +69,6 @@ typedef struct {
 
 static dmflagsOptions_t dmflagsOptions_s;
 
-static void DMflagsOptions_SetMenuItems( void ) {
-}
-
 static void DMflagsOptions_Event( void* ptr, int notification ) {
 	if( notification != QM_ACTIVATED ) {
 		return;
@@ -81,42 +78,34 @@ static void DMflagsOptions_Event( void* ptr, int notification ) {
 	case ID_FALLINGDAMAGE:
 		UI_PopMenu();
 		break;
-	}
 
 	case ID_FIXEDFOV:
 		UI_PopMenu();
 		break;
-	}
 
 	case ID_FOOTSTEPS:
 		UI_PopMenu();
 		break;
-	}
 
 	case ID_WEAPONSWITCH:
 		UI_PopMenu();
 		break;
-	}
 
 	case ID_STRAFE:
 		UI_PopMenu();
 		break;
-	}
 
 	case ID_INVISIBILITY:
 		UI_PopMenu();
 		break;
-	}
 
 	case ID_LIGHTVOTING:
 		UI_PopMenu();
 		break;
-	}
 
 	case ID_WEAPONSSELFDAMAGE:
 		UI_PopMenu();
 		break;
-	}
 
 	case ID_BACK:
 		UI_PopMenu();
@@ -125,7 +114,7 @@ static void DMflagsOptions_Event( void* ptr, int notification ) {
 }
 
 static void DMflagsOptions_MenuInit( void ) {
-	//int				y;
+	int				y;
 
 	memset( &dmflagsOptions_s, 0 ,sizeof(dmflagsOptions_t) );
 
@@ -157,7 +146,7 @@ static void DMflagsOptions_MenuInit( void ) {
 	dmflagsOptions_s.framer.width			= 256;
 	dmflagsOptions_s.framer.height			= 334;
 
-	y += BIGCHAR_HEIGHT+2;
+	y += 82;
 	dmflagsOptions_s.fallingDamage.generic.type		= MTYPE_RADIOBUTTON;
 	dmflagsOptions_s.fallingDamage.generic.name		= "No Falling Damage:";
 	dmflagsOptions_s.fallingDamage.generic.flags		= QMF_PULSEIFFOCUS|QMF_SMALLFONT;
@@ -244,9 +233,25 @@ static void DMflagsOptions_MenuInit( void ) {
 	Menu_AddItem( &dmflagsOptions_s.menu, &dmflagsOptions_s.framel );
 	Menu_AddItem( &dmflagsOptions_s.menu, &dmflagsOptions_s.framer );
 
+	Menu_AddItem( &dmflagsOptions_s.menu, &dmflagsOptions_s.fallingDamage );
+	Menu_AddItem( &dmflagsOptions_s.menu, &dmflagsOptions_s.fixedFOV );
+	Menu_AddItem( &dmflagsOptions_s.menu, &dmflagsOptions_s.footsteps );
+	Menu_AddItem( &dmflagsOptions_s.menu, &dmflagsOptions_s.instantWeaponChange );
+	Menu_AddItem( &dmflagsOptions_s.menu, &dmflagsOptions_s.strafeJumping );
+	Menu_AddItem( &dmflagsOptions_s.menu, &dmflagsOptions_s.totalInvisibility );
+	Menu_AddItem( &dmflagsOptions_s.menu, &dmflagsOptions_s.lightVoting );
+	Menu_AddItem( &dmflagsOptions_s.menu, &dmflagsOptions_s.weaponsSelfDamage );
+
 	Menu_AddItem( &dmflagsOptions_s.menu, &dmflagsOptions_s.back );
 
-	DMflagsOptions_SetMenuItems();
+	dmflagsOptions_s.fallingDamage.curvalue = trap_Cvar_VariableValue( "dmflags" ) >= 8;
+	dmflagsOptions_s.fixedFOV.curvalue = trap_Cvar_VariableValue( "dmflags" ) >= 16;
+	dmflagsOptions_s.footsteps.curvalue = trap_Cvar_VariableValue( "dmflags" ) >= 32;
+	dmflagsOptions_s.instantWeaponChange.curvalue = trap_Cvar_VariableValue( "dmflags" ) >= 64;
+	dmflagsOptions_s.strafeJumping.curvalue = trap_Cvar_VariableValue( "dmflags" ) >= 128;
+	dmflagsOptions_s.totalInvisibility.curvalue = trap_Cvar_VariableValue( "dmflags" ) >= 256;
+	dmflagsOptions_s.lightVoting.curvalue = trap_Cvar_VariableValue( "dmflags" ) >= 512;
+	dmflagsOptions_s.weaponsSelfDamage.curvalue = trap_Cvar_VariableValue( "dmflags" ) >= 1024;
 }
 
 
