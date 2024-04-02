@@ -76,12 +76,10 @@ static void DMFlags_DrawBitfield( void *self ) {
 	menufield_s	*f;
 	float		*color;
 	int		x, y;
-	int		len;
 
 	f = (menufield_s*)self;
 	x = f->generic.x;
 	y = f->generic.y;
-	len = strlen( UI_Cvar_VariableString( "dmflags" ) );
 
 	if ( trap_Cvar_VariableValue( "dmflags" ) ) {
 		color = text_color_normal;
