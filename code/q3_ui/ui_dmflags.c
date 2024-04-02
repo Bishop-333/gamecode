@@ -90,7 +90,7 @@ static void DMFlags_DrawBitfield( void *self ) {
 	}
 
 	UI_DrawString( x - 8, y, f->generic.name, UI_RIGHT|UI_SMALLFONT, color );
-	UI_DrawString( x + 24 + len * SMALLCHAR_WIDTH, y, UI_Cvar_VariableString( "dmflags" ), UI_RIGHT|UI_SMALLFONT, color );
+	UI_DrawString( x + 48, y, UI_Cvar_VariableString( "dmflags" ), UI_SMALLFONT|UI_RIGHT, color );
 }
 
 static void DMflagsOptions_Event( void* ptr, int notification ) {
