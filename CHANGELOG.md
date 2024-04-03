@@ -37,7 +37,7 @@
 * `capturelimit` no longer affects Team Deathmatch.
 * `cg_teamChatsOnly` now only affects team-based gamemodes.
 * `cg_weaponBarStyle` now returns the default weapon bar if its value falls outside its limits.
-* `developer` mode has been extended with several cvars now requiring the mode to be enabled.
+* `developer` mode has been extended with several cvars now requiring the mode to be enabled. If a cvar has "debug" in its name, it requires this mode.
 * `elimination_selfDamage` now takes four values: 0 (no damage to self or teammates), 1 (only damage to self), 2 (only damage to teammates a.k.a. Friendly Fire) and 3 (self and teammate damage).
 * New option for `g_awardPushing`: `g_awardPushing 2`. [If a player commits suicide, the last player who attacked them scores a point.](https://openarena.ws/board/index.php?topic=5289.msg54334#msg54334)
 * Spectators can now use the `noclip` cheat code.
@@ -95,6 +95,7 @@
   * `CG_GametypeUsesCaptureLimit(int gametype)` (cgame), `CG_GametypeUsesCaptureLimit(int gametype)` (game), and `CG_GametypeUsesCaptureLimit(int gametype)` (q3_ui and ui) return true if the gametype uses captures as a score limit. Done this way in case other score limits are later introduced. (For OA, it would be CTF, 1FCTF, Overload, Elimination, eCTF, LMS and DD)
   * `G_IsANoPickupsMode()` (game) returns true if the match uses a no-pickup rule. So far, this is used for the "Instantgib", "Single Weapon Arena" and "All Weapons (Elimination-like)" Weapon Rulesets.
   * `G_GametypeUsesRunes(int gametype)` (game) returns true if the gametype belongs to a short list where Runes can be used.
+  * `G_GetAttackingTeam()` (game) returns the team that has the current attacker role for eCTF Attack vs. Defense matches.
 * New AI-related tools for modders:
   * `BotTeamOwnsControlPoint(bot_state_t *bs,int point)` is used for both DD and DOM and returns true if the bot's team controls a Control Point.
   * `BotAreThereDOMPointsInTheMap()`, used for Domination, returns true if the match contains at least one Control Point (`domination_point`).
@@ -113,9 +114,9 @@
   * `BotIsFlagOnOurBase(bot_state_t *bs)` returns true if the bot's team's flag is in their team's base. Used for CTF and eCTF.
   * `BotIsEnemyFlagOnEnemyBase(bot_state_t *bs)` returns true if the bot's enemy team's flag is in the enemy team's base. Used for CTF and eCTF.
 * New tools for modders for UI3:
-  * `ui_randomIntToCvar(int number)` saves a random integer to a cvar.
-  * `ui_randomStringToCvar(int number)` saves a random string from a list to a cvar.
-  * `ui_randomFloatToCvar(int number)` saves a random floating point number to a cvar.
+  * `ui_randomIntToCvar()` saves a random integer to a cvar.
+  * `ui_randomStringToCvar()` saves a random string from a list to a cvar.
+  * `ui_randomFloatToCvar()` saves a random floating point number to a cvar.
 * New tools for mappers:
   * `state_targetname` key for `func_door`, it overrides `targetname` in round-based gametypes. [It allows the creation of doors for Elimination-based modes that open during the active time of the game](https://openarena.ws/board/index.php?topic=5437.0). In-game demonstration video [here](https://www.youtube.com/watch?v=lHq56Gx058w). It's already supported by [the gamepack](https://github.com/NeonKnightOA/oagamepack).
   * New entities: `info_player_dom_red` and `info_player_dom_blue`. Both act as dedicated spawnpoints for Domination. They are supported by the gamepack too.
@@ -123,27 +124,50 @@
     * `author` (Author of the map)
     * `title` (Map title, i.e. for oasago2 it would display "Sago's Castle")
     * `description` (Short description of the context/backstory of the map)
-    * `mpBots` (Bots per name to be added to non-team-based games for this map)
+    * `mpBots` (Bots per name to be added to non-team-based games for this map; impacts directly in SP)
     * `mpBotCount` (Amount of randomly picked bots that should be summoned instead of calling them by name for this map)
     * `redBots` (Bots per name to be added to the Red team in team-based games for this map)
     * `redBotCount` (Amount of randomly picked bots that should be added to the Red team in team-based games for this map)
     * `blueBots` (Bots per name to be added to the Blue team in team-based games for this map)
     * `blueBotCount` (Amount of randomly picked bots that should be added to the Blue team in team-based games for this map)
+    * `teamBotCount` (Amount of randomly picked up bots that should be added in each team)
     * `captureLimit` (Limit of captures in general for capture-based gamemodes for this map)
-    * `fragLimit` (Limit of points in general for score-based gamemodes for this map)
-    * `timeLimit` (Time limit in general for this map)
+    * `fragLimit` (Limit of points in general for score-based gamemodes for this map; impacts directly in SP)
+    * `timeLimit` (Time limit in general for this map; impacts directly in SP)
     * `maxPlayers` (Amount of ideal max players in games in this map)
     * `minPlayers` (Amount of ideal min players in games in this map)
     * `maxTeamSize` (Amount of ideal max team members in team games in this map)
     * `minTeamSize` (Amount of ideal max team members in team games in this map)
     * `recommendedPlayers` (Amount of ideal players in games in this map)
     * `recommendedTeamSize` (Amount of ideal team members in team games)
-* The "You've Been Mined" message, shown whenever you're directly hit by a proxy mine, now begins its combustion countdown instantly.
+    * `special` (Field meant to be used for SP, specifies the kind of match and the rules that should be applied to it (Training, Instagib, Final... see below))
+    * `timeToBeatPlatinum`, `timeToBeatGold`, `timeToBeatSilver` and `timeToBeatBronze` (Also meant for SP, specifies the par times for each trophy, with Platinum being the first not to be "earned" and Bronze the last).
+* New special matches for Classic SP in addition to `"training"` and `"final"`. These can be specified in either the map's specific .info file (the game will look at this first) the map's .arena file or arenas.txt:
+  * `"special" "instantGib"`: Instagib match.
+  * `"special" "singleWeaponGA"`: Single Weapon: Gauntlet match.
+  * `"special" "singleWeaponMG"`: Single Weapon: Machinegun match.
+  * `"special" "singleWeaponSG"`: Single Weapon: Shotgun match.
+  * `"special" "singleWeaponGL"`: Single Weapon: Grenade Launcher match.
+  * `"special" "singleWeaponRL"`: Single Weapon: Rocket Launcher match.
+  * `"special" "singleWeaponLG"`: Single Weapon: Lightning Gun match.
+  * `"special" "singleWeaponRG"`: Single Weapon: Railgun match.
+  * `"special" "singleWeaponPG"`: Single Weapon: Plasma Gun match.
+  * `"special" "singleWeaponBFG"`: Single Weapon: BFG match.
+  * `"special" "singleWeaponNG"`: Single Weapon: Nailgun match.
+  * `"special" "singleWeaponCG"`: Single Weapon: Chaingun match.
+  * `"special" "singleWeaponPL"`: Single Weapon: Prox Launcher match.
+  * `"special" "grappleMatch"`: Grappling Hook match. (Adds the GH to the (re)spawning inventory).
+  * `"special" "eliminationMode"`: Elimination Mode match. (No pickups, all weapons, full health and armor).
+  * `"special" "vampireMode"`: Vampire Mode match. 50% of all damage dealt becomes health for the player.
+  * `"special" "lowGravity"`: Low Gravity match. (Gravity of the level reduced to 100).
+* In-game feedback:
+  * Double Domination now displays a "New Round" message between rounds.
+  * CTF Elimination "Attack vs. Defense" mode (formerly "One-Way" mode): Now players on both teams are properly informed of their roles. When a team attacks, the message (_"You Are Attacking!"_) displayed is fully saturated in the team's color (i.e. fully blue for Blue team, fully red for Red team), while when defending the message (_"You Are Defending!"_) is displayed in a lighter color (magenta for the Red team, cyan for the Blue team). The original messages (_"Blue/Red/Unknown Team is on Offence"_) are available for spectators.
+  * The "You've Been Mined" message, shown whenever you're directly hit by a proxy mine, now begins its combustion countdown instantly.
 * Default score limits are now consistent across all gamemodes.
-* Compatibility fixes to make gamecode buidable under M1 Mac. (Thanks @Bishop-313!)
+* Compatibility fixes to make gamecode buidable under M1 Mac. (Thanks @Bishop-333!)
 * Team Orders now display the proper team orders rather than those of Team Deathmatch for all team-based gamemodes.
 * Challenges now account for TDM wins.
-* Double Domination now displays a "New Round" message.
 * Removed some #ifdef that blocked legit AI code out of Classic UI.
 * Bots now use tourney6-like crushers against their enemies, and ONLY their enemies.
 * Score bonus fixes for CTF and 1FCTF.
@@ -163,14 +187,52 @@
 
 ## oaxB53.2
 
-**Estimated release date:** March 29, 2024
+**Estimated release date:** April 5, 2024
 
+* New special matches for Classic SP in addition to `"training"` and `"final"`. These can be specified in either the map's specific .info file (the game will look at this first) the map's .arena file or arenas.txt:
+  * `"special" "instantGib"`: Instagib match.
+  * `"special" "singleWeaponGA"`: Single Weapon: Gauntlet match.
+  * `"special" "singleWeaponMG"`: Single Weapon: Machinegun match.
+  * `"special" "singleWeaponSG"`: Single Weapon: Shotgun match.
+  * `"special" "singleWeaponGL"`: Single Weapon: Grenade Launcher match.
+  * `"special" "singleWeaponRL"`: Single Weapon: Rocket Launcher match.
+  * `"special" "singleWeaponLG"`: Single Weapon: Lightning Gun match.
+  * `"special" "singleWeaponRG"`: Single Weapon: Railgun match.
+  * `"special" "singleWeaponPG"`: Single Weapon: Plasma Gun match.
+  * `"special" "singleWeaponBFG"`: Single Weapon: BFG match.
+  * `"special" "singleWeaponNG"`: Single Weapon: Nailgun match.
+  * `"special" "singleWeaponCG"`: Single Weapon: Chaingun match.
+  * `"special" "singleWeaponPL"`: Single Weapon: Prox Launcher match.
+  * `"special" "grappleMatch"`: Grappling Hook match. (Adds the GH to the (re)spawning inventory).
+  * `"special" "eliminationMode"`: Elimination Mode match. (No pickups, all weapons, full health and armor).
+  * `"special" "vampireMode"`: Vampire Mode match. 50% of all damage dealt becomes health for the player.
+  * `"special" "lowGravity"`: Low Gravity match. (Gravity of the level reduced to 100).
+* The fields `fragLimit`, `timeLimit`, `special` and `mpBots` from the .info files now impact directly in Classic SP.
+* New fields for .info files: `teamBotCount`, `special`, `timeToBeatPlatinum`, `timeToBeatGold`, `timeToBeatSilver` and `timeToBeatBronze`.
+* Non-capturelimit modes won't display capturelimit if fraglimit is <= 0.
+* New default round time limits for Elimination/eCTF/LMS.
+* Reverted Harvester as a capturelimit gamemode.
+* All default Time Limits set to 15.
+* In classic SP, the console won't complain anymore for missing character announcement lines.
+* Railgun glass now matches the selected beam color. (Credit: @Bishop-333)
+* Suppressed the lots of ".info file not found" messages to Developer mode.
+* The key objective checker now checks for (at least one) Domination points in DOM and for the white flag in POS.
+* Flags aren't drawn anymore in Harvester/Overload.
+* New helper function for game: `G_GetAttackingTeam()`, returns the actual team that's in the attacker role in eCTF AvD mode.
+* CTF Elimination, AvD mode (formerly "One-Way mode"): Now both teams will get informed on their role appropriately:
+  * If the team is attacking, the players will receive a _"You Are Attacking!"_ message with the fully saturated color of their team.
+  * If they're defending instead, they will receive _"You Are Defending!"_ in either Magenta (Red Team) or Cyan (Blue Team) coloring.
+  * The older messages (_"Blue/Red/Unknown Team is on Offence"_) are available for spectators of the match.
+* Skirmish/Create Server:
+  * For Weapon Rulesets in Round-based games, removed duplicate _"All Weapons (Elimination)"_ and shortened to _"All Weapons (Elim.)"_. Also shortened _"All Weapons (Standard)"_ to _"All Weapons (Default)"_.
+  * Changed the item descriptions for "Award Pushing".
+* "Apply" button added to the Sound menu. (Credit: @Bishop-333)
 * DD now displays "X team dominates!" on top of the counter.
 * Timer, Movement Speed and Last Attacker are now rendered on top of the gametype-specific strings.
-* A certain string modification was wrongly applied to 1FCTF when it should have been applied to CTF.
+* A certain string modification was wrongly applied to 1FCTF when it should have been applied to CTF. (Fixes OpenArena/gamecode#163)
 * `g_classicMode` is now a serverside cvar.
 * Fixes for some bad gametype comparisons that made `capturelimit` affect Classic SP.
-* "You Have Been Mined" message now displays correctly.
+* "You Have Been Mined" message now displays correctly. (Fixes OpenArena/gamecode#266)
 * Fix for bad default for `cg_hitSound` (Credit: @leilei-)
 * Many other changes under the hood.
 
@@ -204,7 +266,10 @@
 * `capturelimit` no longer affects Team Deathmatch.
 * `cg_teamChatsOnly` now only affects team-based gamemodes.
 * `cg_weaponBarStyle` now returns the default weapon bar if its value falls outside its limits.
-* `developer` mode has been extended with several cvars now requiring the mode to be enabled.
+* `developer` mode has been extended with several cvars now requiring the mode to be enabled. All these cvars are also cheat-protected.
+  * New cheat-protected development cvars: `cg_debugOrbit`, `cg_debugAccuracy`, `bot_debugChat`, `bot_debugLTG` and `bot_debugPaths`.
+  * Restored `cg_debugDelag`.
+  * Other cvars that require developer 1 include `cg_debugAnim`, `cg_debugPosition`, `cg_debugEvents`, `cg_leiDebug`, `g_debugMove`, `g_debugDamage`, `g_debugAlloc`, `ui_debug` (MPUI/UI3) and `ui_leiDebug` (MPUI/UI3).
 * `elimination_selfDamage` now takes four values: 0 (no damage to self or teammates), 1 (only damage to self), 2 (only damage to teammates a.k.a. Friendly Fire) and 3 (self and teammate damage).
 * New option for `g_awardPushing`: `g_awardPushing 2`. [If a player commits suicide, the last player who attacked them scores a point.](https://openarena.ws/board/index.php?topic=5289.msg54334#msg54334)
 * Spectators can now use the `noclip` cheat code.
@@ -300,7 +365,7 @@
   * `recommendedTeamSize` (Amount of ideal team members in team games)
 * The "You've Been Mined" message, shown whenever you're directly hit by a proxy mine, now begins its combustion countdown instantly.
 * Default score limits are now consistent across all gamemodes.
-* Compatibility fixes to make gamecode buidable under M1 Mac. (Thanks @Bishop-313!)
+* Compatibility fixes to make gamecode buidable under M1 Mac. (Thanks @Bishop-333!)
 * Team Orders now display the proper team orders rather than those of Team Deathmatch for all team-based gamemodes.
 * Challenges now account for TDM wins.
 * Double Domination now displays a "New Round" message.

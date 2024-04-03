@@ -1837,7 +1837,7 @@ qboolean MatchesGametype(int gametype, const char* gametypeName) {
 	return mayRead;
 }
 
-void MapInfoGet(const char* mapname, int gametype, mapinfo_result_t *result) {
+void MapInfoGet(const char* mapname, int gametype, mapinfo_result_t *result, qboolean developer) {
 	fileHandle_t file;
 	char buffer[4 * 1024];
 	char keyBuffer[MAX_TOKEN_CHARS];
@@ -1853,7 +1853,9 @@ void MapInfoGet(const char* mapname, int gametype, mapinfo_result_t *result) {
 	trap_FS_FOpenFile(buffer, &file, FS_READ);
 
 	if (!file) {
-		Com_Printf("File %s not found\n", buffer);
+		if (developer) {
+			Com_Printf("File %s not found\n", buffer);
+		}
 		return;
 	}
 
@@ -1913,11 +1915,17 @@ void MapInfoGet(const char* mapname, int gametype, mapinfo_result_t *result) {
 		if (Q_strequal(keyBuffer, "blueBotCount")) {
 			if (mayRead) result->blueBotCount = atoi(token);
 		}
+		if (Q_strequal(keyBuffer, "teamBotCount")) {
+			if (mayRead) result->teamBotCount = atoi(token);
+		}
 		if (Q_strequal(keyBuffer, "captureLimit")) {
 			if (mayRead) result->captureLimit = atoi(token);
 		}
 		if (Q_strequal(keyBuffer, "fragLimit")) {
 			if (mayRead) result->fragLimit = atoi(token);
+		}
+		if (Q_strequal(keyBuffer, "timeLimit")) {
+			if (mayRead) result->timeLimit = atoi(token);
 		}
 		if (Q_strequal(keyBuffer, "maxPlayers")) {
 			if (mayRead) result->maxPlayers = atoi(token);
@@ -1937,8 +1945,20 @@ void MapInfoGet(const char* mapname, int gametype, mapinfo_result_t *result) {
 		if (Q_strequal(keyBuffer, "recommendedTeamSize")) {
 			if (mayRead) result->recommendedTeamSize = atoi(token);
 		}
-		if (Q_strequal(keyBuffer, "timeLimit")) {
-			if (mayRead) result->timeLimit = atoi(token);
+		if (Q_strequal(keyBuffer, "special")) {
+			if (mayRead) Q_strncpyz(result->special, token, sizeof (result->special));
+		}
+		if (Q_strequal(keyBuffer, "timeToBeatPlatinum")) {
+			if (mayRead) result->timeToBeatPlatinum = atoi(token);
+		}
+		if (Q_strequal(keyBuffer, "timeToBeatGold")) {
+			if (mayRead) result->timeToBeatGold = atoi(token);
+		}
+		if (Q_strequal(keyBuffer, "timeToBeatSilver")) {
+			if (mayRead) result->timeToBeatSilver = atoi(token);
+		}
+		if (Q_strequal(keyBuffer, "timeToBeatBronze")) {
+			if (mayRead) result->timeToBeatBronze = atoi(token);
 		}
 #define SUPPORT_GAMETYPE_PREFIX "support_"
 		if (Q_strequaln(keyBuffer, SUPPORT_GAMETYPE_PREFIX, sizeof (SUPPORT_GAMETYPE_PREFIX) - 1)) {

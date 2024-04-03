@@ -439,9 +439,9 @@ void Touch_Item (gentity_t *ent, gentity_t *other, trace_t *trace)
 		return;
 
 	//Cannot take ctf elimination oneway
-	if(g_gametype.integer == GT_CTF_ELIMINATION && g_elimination_ctf_oneway.integer!=0 && (
-	            (other->client->sess.sessionTeam==TEAM_BLUE && (level.eliminationSides+level.roundNumber)%2 == 0 ) ||
-	            (other->client->sess.sessionTeam==TEAM_RED && (level.eliminationSides+level.roundNumber)%2 != 0 ) ))
+	if(g_gametype.integer == GT_CTF_ELIMINATION && g_elimination_ctf_oneway.integer!=0 &&
+			((other->client->sess.sessionTeam==TEAM_BLUE && G_GetAttackingTeam() == TEAM_RED ) ||
+			(other->client->sess.sessionTeam==TEAM_RED && G_GetAttackingTeam() == TEAM_BLUE )))
 		return;
 
 	if (g_gametype.integer == GT_ELIMINATION || g_gametype.integer == GT_LMS)
@@ -784,17 +784,19 @@ void G_CheckTeamItems( void )
 			G_Printf( S_COLOR_YELLOW "WARNING: No team_CTF_blueflag in map\n" );
 		}
 	}
-	if( g_gametype.integer == GT_1FCTF ) {
+	if(G_UsesTheWhiteFlag(g_gametype.integer)) {
 		gitem_t	*item;
 
 		// check for all three flags
-		item = BG_FindItem( "Red Flag" );
-		if ( !item || !itemRegistered[ item - bg_itemlist ] ) {
-			G_Printf( S_COLOR_YELLOW "WARNING: No team_CTF_redflag in map\n" );
-		}
-		item = BG_FindItem( "Blue Flag" );
-		if ( !item || !itemRegistered[ item - bg_itemlist ] ) {
-			G_Printf( S_COLOR_YELLOW "WARNING: No team_CTF_blueflag in map\n" );
+		if(G_UsesTeamFlags(g_gametype.integer)){
+			item = BG_FindItem( "Red Flag" );
+			if ( !item || !itemRegistered[ item - bg_itemlist ] ) {
+				G_Printf( S_COLOR_YELLOW "WARNING: No team_CTF_redflag in map\n" );
+			}
+			item = BG_FindItem( "Blue Flag" );
+			if ( !item || !itemRegistered[ item - bg_itemlist ] ) {
+				G_Printf( S_COLOR_YELLOW "WARNING: No team_CTF_blueflag in map\n" );
+			}
 		}
 		item = BG_FindItem( "Neutral Flag" );
 		if ( !item || !itemRegistered[ item - bg_itemlist ] ) {
@@ -839,6 +841,16 @@ void G_CheckTeamItems( void )
 		ent = G_Find( ent, FOFS(classname), "team_neutralobelisk" );
 		if( !ent ) {
 			G_Printf( S_COLOR_YELLOW "WARNING: No team_neutralobelisk in map\n" );
+		}
+	}
+	if ( g_gametype.integer == GT_DOMINATION ) {
+		gentity_t	*ent;
+
+		// check for at least one domination point
+		ent = NULL;
+		ent = G_Find( ent, FOFS(classname), "domination_point" );
+		if( !ent ) {
+			G_Printf( S_COLOR_YELLOW "WARNING: No domination_point in map\n" );
 		}
 	}
 }
@@ -1006,6 +1018,11 @@ void G_SpawnItem (gentity_t *ent, gitem_t *item)
 	if(g_gametype.integer == GT_DOUBLE_D && (strequals(ent->classname, "team_CTF_redflag") || strequals(ent->classname, "team_CTF_blueflag")
 	        || strequals(ent->classname, "team_CTF_neutralflag"))) {
 		ent->s.eFlags |= EF_NODRAW; //Don't draw the flag models/persistant powerups
+	}
+
+	if( (g_gametype.integer == GT_HARVESTER || g_gametype.integer == GT_OBELISK) &&
+			(strequals(ent->classname, "team_CTF_redflag") || strequals(ent->classname, "team_CTF_blueflag") ) ) {
+		ent->s.eFlags |= EF_NODRAW; // Don't draw the team flags in Harvester/Overload
 	}
 
 	if( !G_UsesTheWhiteFlag(g_gametype.integer) && strequals(ent->classname, "team_CTF_neutralflag")) {

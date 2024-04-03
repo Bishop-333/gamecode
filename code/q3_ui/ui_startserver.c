@@ -403,8 +403,12 @@ static void StartServer_GametypeEvent( void* ptr, int event ) {
 	}
 	for( i = 0; i < count; i++ ) {
 		info = UI_GetArenaInfoByNumber( i );
-		MapInfoGet(Info_ValueForKey(info, "map"), gametype_remap[s_startserver.gametype.curvalue], &mapinfo);
-
+		if (ui_developer.integer) {
+			MapInfoGet(Info_ValueForKey(info, "map"), gametype_remap[s_startserver.gametype.curvalue], &mapinfo, qtrue);
+		}
+		else {
+			MapInfoGet(Info_ValueForKey(info, "map"), gametype_remap[s_startserver.gametype.curvalue], &mapinfo, qfalse);
+		}
 		gamebits = GametypeBits( Info_ValueForKey( info, "type") );
 		for ( j=0; j< GT_MAX_GAME_TYPE; ++j) {
 			if (mapinfo.gametypeSupported[j]=='y' || mapinfo.gametypeSupported[j]=='Y') {
@@ -910,25 +914,24 @@ static const char *weaponArenaWeapon_list[] = {
 };
 
 static const char *weaponMode_list[] = {
-	"All Weapons (Standard)",
+	"All Weapons (Default)",
 	"Instantgib",
 	"Single Weapon Arena",
 	"Classic Arena",
-	"All Weapons (Elimination)",
+	"All Weapons (Elim.)",
 	NULL
 };
 
 static const char *weaponModeElimination_list[] = {
-	"All Weapons (Elimination)",
+	"All Weapons (Elim.)",
 	"Instantgib",
 	"Single Weapon Arena",
 	"Classic Arena",
-	"All Weapons (Elimination)",
 	NULL
 };
 
 static const char *pmove_list[] = {
-	"Framerate dependent",
+	"Framerate Dependant",
 	"Fixed framerate 125Hz",
 	"Fixed framerate 91Hz",
 	"Accurate",
@@ -936,9 +939,9 @@ static const char *pmove_list[] = {
 };
 
 static const char *awardPushing_list[] = {
-	"Pushed Loses A Point",
-	"Pusher Scores A Point",
-	"Last Attacker Scores",
+	"Disabled",
+	"Last Pusher",
+	"Last Attacker",
 	NULL
 };
 
@@ -1071,16 +1074,19 @@ static void ServerOptions_Start( void ) {
 	case GT_ELIMINATION:
 		trap_Cvar_SetValue( "ui_elimination_scorelimit", capturelimit );
 		trap_Cvar_SetValue( "ui_elimination_timelimit", timelimit );
+		trap_Cvar_SetValue( "ui_elimination_roundtimelimit", eliminationRoundTime );
 		break;
 
 	case GT_CTF_ELIMINATION:
 		trap_Cvar_SetValue( "ui_ctf_elimination_scorelimit", capturelimit );
 		trap_Cvar_SetValue( "ui_ctf_elimination_timelimit", timelimit );
+		trap_Cvar_SetValue( "ui_ctf_elimination_roundtimelimit", eliminationRoundTime );
 		break;
 
 	case GT_LMS:
 		trap_Cvar_SetValue( "ui_lms_scorelimit", capturelimit );
 		trap_Cvar_SetValue( "ui_lms_timelimit", timelimit );
+		trap_Cvar_SetValue( "ui_lms_roundtimelimit", eliminationRoundTime );
 		break;
 
 	case GT_DOUBLE_D:
@@ -1134,51 +1140,76 @@ static void ServerOptions_Start( void ) {
 			break;
 	};
 	trap_Cvar_SetValue( "g_grapple", grapple );
-	switch(weaponMode) {
-		case 1:
-			//Instantgib
-			trap_Cvar_SetValue( "g_instantgib", 1);
-			trap_Cvar_SetValue( "g_weaponArena", 0);
-			trap_Cvar_SetValue( "g_elimination", 0);
-			trap_Cvar_SetValue( "g_classicMode", 0);
-			break;
-		case 2:
-			//Weapon Arena
-			trap_Cvar_SetValue( "g_instantgib", 0);
-			trap_Cvar_SetValue( "g_weaponArena", 1);
-			trap_Cvar_SetValue( "g_elimination", 0);
-			trap_Cvar_SetValue( "g_classicMode", 0);
-			break;
-		case 3:
-			//"Classic" Arena
-			trap_Cvar_SetValue( "g_instantgib", 0);
-			trap_Cvar_SetValue( "g_weaponArena", 0);
-			trap_Cvar_SetValue( "g_elimination", 0);
-			trap_Cvar_SetValue( "g_classicMode", 1);
-			break;
-		case 4:
-			if (UI_IsARoundBasedGametype(s_serveroptions.gametype)) {
+	if (UI_IsARoundBasedGametype(s_serveroptions.gametype)) {
+		switch(weaponMode) {
+			case 1:
+				//Instantgib
+				trap_Cvar_SetValue( "g_instantgib", 1);
+				trap_Cvar_SetValue( "g_weaponArena", 0);
+				trap_Cvar_SetValue( "g_elimination", 0);
+				trap_Cvar_SetValue( "g_classicMode", 0);
+				break;
+			case 2:
+				//Weapon Arena
+				trap_Cvar_SetValue( "g_instantgib", 0);
+				trap_Cvar_SetValue( "g_weaponArena", 1);
+				trap_Cvar_SetValue( "g_elimination", 0);
+				trap_Cvar_SetValue( "g_classicMode", 0);
+				break;
+			case 3:
+				//"Classic" Arena
+				trap_Cvar_SetValue( "g_instantgib", 0);
+				trap_Cvar_SetValue( "g_weaponArena", 0);
+				trap_Cvar_SetValue( "g_elimination", 0);
+				trap_Cvar_SetValue( "g_classicMode", 1);
+				break;
+			default:
 				// Default mode for round-based gametypes.
 				trap_Cvar_SetValue( "g_instantgib", 0);
 				trap_Cvar_SetValue( "g_weaponArena", 0);
 				trap_Cvar_SetValue( "g_elimination", 0);
 				trap_Cvar_SetValue( "g_classicMode", 0);
-			}
-			else {
+				break;
+		}
+	}
+	else {
+		switch(weaponMode) {
+			case 1:
+				//Instantgib
+				trap_Cvar_SetValue( "g_instantgib", 1);
+				trap_Cvar_SetValue( "g_weaponArena", 0);
+				trap_Cvar_SetValue( "g_elimination", 0);
+				trap_Cvar_SetValue( "g_classicMode", 0);
+				break;
+			case 2:
+				//Weapon Arena
+				trap_Cvar_SetValue( "g_instantgib", 0);
+				trap_Cvar_SetValue( "g_weaponArena", 1);
+				trap_Cvar_SetValue( "g_elimination", 0);
+				trap_Cvar_SetValue( "g_classicMode", 0);
+				break;
+			case 3:
+				//"Classic" Arena
+				trap_Cvar_SetValue( "g_instantgib", 0);
+				trap_Cvar_SetValue( "g_weaponArena", 0);
+				trap_Cvar_SetValue( "g_elimination", 0);
+				trap_Cvar_SetValue( "g_classicMode", 1);
+				break;
+			case 4:
 				//Elimination mode.
 				trap_Cvar_SetValue( "g_instantgib", 0);
 				trap_Cvar_SetValue( "g_weaponArena", 0);
 				trap_Cvar_SetValue( "g_elimination", 1);
 				trap_Cvar_SetValue( "g_classicMode", 0);
-			}
-			break;
-		default:
-			//All Weapons Classic.
-			trap_Cvar_SetValue( "g_instantgib", 0);
-			trap_Cvar_SetValue( "g_weaponArena", 0);
-			trap_Cvar_SetValue( "g_elimination", 0);
-			trap_Cvar_SetValue( "g_classicMode", 0);
-			break;
+				break;
+			default:
+				//All Weapons Classic.
+				trap_Cvar_SetValue( "g_instantgib", 0);
+				trap_Cvar_SetValue( "g_weaponArena", 0);
+				trap_Cvar_SetValue( "g_elimination", 0);
+				trap_Cvar_SetValue( "g_classicMode", 0);
+				break;
+		}
 	}
 	trap_Cvar_SetValue( "g_weaponArenaWeapon", weaponArenaWeapon );
 	trap_Cvar_SetValue( "g_awardPushing", awardPushing );
@@ -1552,34 +1583,50 @@ Descriptions should have 48 characters or less per line, and there can't be more
 =================
 */
 static void ServerOptions_StatusBar_WeaponMode( void* ptr ) {
-    switch( ((menulist_s*)ptr)->curvalue ) {
-		case 1:
-			UI_DrawString( 320, 440, "Instantgib: All pickups removed.", UI_CENTER|UI_SMALLFONT, colorWhite );
-			UI_DrawString( 320, 460, "Players spawn with a one-hit-frag Railgun.", UI_CENTER|UI_SMALLFONT, colorWhite );
-			break;
-		case 2:
-			UI_DrawString( 320, 440, "Single Weapon Arena: All pickups removed.", UI_CENTER|UI_SMALLFONT, colorWhite );
-			UI_DrawString( 320, 460, "Players will spawn with a specific weapon.", UI_CENTER|UI_SMALLFONT, colorWhite );
-			break;
-		case 3:
-			UI_DrawString( 320, 440, "Classic Arena: No pickups removed. Replaces some", UI_CENTER|UI_SMALLFONT, colorWhite );
-			UI_DrawString( 320, 460, "weapons and items to match the OG experience.", UI_CENTER|UI_SMALLFONT, colorWhite );
-			break;
-		case 4:
-			UI_DrawString( 320, 440, "All Weapons (Elimination): All pickups removed.", UI_CENTER|UI_SMALLFONT, colorWhite );
-			UI_DrawString( 320, 460, "Players spawn with all weapons and full HP/AP.", UI_CENTER|UI_SMALLFONT, colorWhite );
-			break;
-		default:
-			if (UI_IsARoundBasedGametype(s_serveroptions.gametype)) {
+	if (UI_IsARoundBasedGametype(s_serveroptions.gametype)) {
+		switch( ((menulist_s*)ptr)->curvalue ) {
+			case 1:
+				UI_DrawString( 320, 440, "Instantgib: All pickups removed.", UI_CENTER|UI_SMALLFONT, colorWhite );
+				UI_DrawString( 320, 460, "Players spawn with a one-hit-frag Railgun.", UI_CENTER|UI_SMALLFONT, colorWhite );
+				break;
+			case 2:
+				UI_DrawString( 320, 440, "Single Weapon Arena: All pickups removed.", UI_CENTER|UI_SMALLFONT, colorWhite );
+				UI_DrawString( 320, 460, "Players will spawn with a specific weapon.", UI_CENTER|UI_SMALLFONT, colorWhite );
+				break;
+			case 3:
+				UI_DrawString( 320, 440, "Classic Arena: No pickups removed. Replaces some", UI_CENTER|UI_SMALLFONT, colorWhite );
+				UI_DrawString( 320, 460, "weapons and items to match the OG experience.", UI_CENTER|UI_SMALLFONT, colorWhite );
+				break;
+			default:
 				UI_DrawString( 320, 440, "All Weapons (Elimination): All pickups removed.", UI_CENTER|UI_SMALLFONT, colorWhite );
 				UI_DrawString( 320, 460, "Players spawn with all weapons and full HP/AP.", UI_CENTER|UI_SMALLFONT, colorWhite );
-			}
-			else {
-				UI_DrawString( 320, 440, "All Weapons (Standard): No pickups removed.", UI_CENTER|UI_SMALLFONT, colorWhite );
+				break;
+		}
+	}
+	else {
+		switch( ((menulist_s*)ptr)->curvalue ) {
+			case 1:
+				UI_DrawString( 320, 440, "Instantgib: All pickups removed.", UI_CENTER|UI_SMALLFONT, colorWhite );
+				UI_DrawString( 320, 460, "Players spawn with a one-hit-frag Railgun.", UI_CENTER|UI_SMALLFONT, colorWhite );
+				break;
+			case 2:
+				UI_DrawString( 320, 440, "Single Weapon Arena: All pickups removed.", UI_CENTER|UI_SMALLFONT, colorWhite );
+				UI_DrawString( 320, 460, "Players will spawn with a specific weapon.", UI_CENTER|UI_SMALLFONT, colorWhite );
+				break;
+			case 3:
+				UI_DrawString( 320, 440, "Classic Arena: No pickups removed. Replaces some", UI_CENTER|UI_SMALLFONT, colorWhite );
+				UI_DrawString( 320, 460, "weapons and items to match the OG experience.", UI_CENTER|UI_SMALLFONT, colorWhite );
+				break;
+			case 4:
+				UI_DrawString( 320, 440, "All Weapons (Elimination): All pickups removed.", UI_CENTER|UI_SMALLFONT, colorWhite );
+				UI_DrawString( 320, 460, "Players spawn with all weapons and full HP/AP.", UI_CENTER|UI_SMALLFONT, colorWhite );
+				break;
+			default:
+				UI_DrawString( 320, 440, "All Weapons (Default): No pickups removed.", UI_CENTER|UI_SMALLFONT, colorWhite );
 				UI_DrawString( 320, 460, "Players spawn with Gauntlet and Machinegun.", UI_CENTER|UI_SMALLFONT, colorWhite );
-			}
-			break;
-    }
+				break;
+		}
+	}
 }
 
 /*
@@ -1604,16 +1651,16 @@ Descriptions should have 48 characters or less per line, and there can't be more
 static void ServerOptions_StatusBar_AwardPushing( void* ptr ) {
     switch( ((menulist_s*)ptr)->curvalue ) {
 		case 1:
-			UI_DrawString( 320, 440, "Pusher Scores A Point: If a player dies in a pit", UI_CENTER|UI_SMALLFONT, colorWhite );
-			UI_DrawString( 320, 460, "the void or another hazard, their pusher scores.", UI_CENTER|UI_SMALLFONT, colorWhite );
+			UI_DrawString( 320, 440, "Last Pusher: If a player is pushed into a level", UI_CENTER|UI_SMALLFONT, colorWhite );
+			UI_DrawString( 320, 460, "hazard and dies, their pusher scores a point.", UI_CENTER|UI_SMALLFONT, colorWhite );
 			break;
 		case 2:
-			UI_DrawString( 320, 440, "Last Attacker Scores: If a player suicides via", UI_CENTER|UI_SMALLFONT, colorWhite );
-			UI_DrawString( 320, 460, "pit, void or hazard, their last attacker scores.", UI_CENTER|UI_SMALLFONT, colorWhite );
+			UI_DrawString( 320, 440, "Last Attacker: If a player suicides or dies", UI_CENTER|UI_SMALLFONT, colorWhite );
+			UI_DrawString( 320, 460, "via level hazard, their last attacker scores.", UI_CENTER|UI_SMALLFONT, colorWhite );
 			break;
 		default: // case 0
-			UI_DrawString( 320, 440, "Pushed Loses A Point: If a player dies in a pit", UI_CENTER|UI_SMALLFONT, colorWhite );
-			UI_DrawString( 320, 460, "the void or another hazard, they lose a point.", UI_CENTER|UI_SMALLFONT, colorWhite );
+			UI_DrawString( 320, 440, "Disabled: If a player dies due to self-damage", UI_CENTER|UI_SMALLFONT, colorWhite );
+			UI_DrawString( 320, 460, "or level hazard, they lose a point.", UI_CENTER|UI_SMALLFONT, colorWhite );
 			break;
     }
 }
@@ -1997,16 +2044,19 @@ static void ServerOptions_SetMenuItems( void ) {
 	case GT_ELIMINATION:
 		Com_sprintf( s_serveroptions.capturelimit.field.buffer, 4, "%i", (int)Com_Clamp( 0, 999, trap_Cvar_VariableValue( "ui_elimination_scorelimit" ) ) );
 		Com_sprintf( s_serveroptions.timelimit.field.buffer, 4, "%i", (int)Com_Clamp( 0, 999, trap_Cvar_VariableValue( "ui_elimination_timelimit" ) ) );
+		Com_sprintf( s_serveroptions.eliminationRoundTime.field.buffer, 4, "%i", (int)Com_Clamp( 0, 999, trap_Cvar_VariableValue( "ui_elimination_roundtimelimit" ) ) );
 		break;
 
 	case GT_CTF_ELIMINATION:
 		Com_sprintf( s_serveroptions.capturelimit.field.buffer, 4, "%i", (int)Com_Clamp( 0, 999, trap_Cvar_VariableValue( "ui_ctf_elimination_scorelimit" ) ) );
 		Com_sprintf( s_serveroptions.timelimit.field.buffer, 4, "%i", (int)Com_Clamp( 0, 999, trap_Cvar_VariableValue( "ui_ctf_elimination_timelimit" ) ) );
+		Com_sprintf( s_serveroptions.eliminationRoundTime.field.buffer, 4, "%i", (int)Com_Clamp( 0, 999, trap_Cvar_VariableValue( "ui_ctf_elimination_roundtimelimit" ) ) );
 		break;
 
 	case GT_LMS:
 		Com_sprintf( s_serveroptions.capturelimit.field.buffer, 4, "%i", (int)Com_Clamp( 0, 999, trap_Cvar_VariableValue( "ui_lms_scorelimit" ) ) );
 		Com_sprintf( s_serveroptions.timelimit.field.buffer, 4, "%i", (int)Com_Clamp( 0, 999, trap_Cvar_VariableValue( "ui_lms_timelimit" ) ) );
+		Com_sprintf( s_serveroptions.eliminationRoundTime.field.buffer, 4, "%i", (int)Com_Clamp( 0, 999, trap_Cvar_VariableValue( "ui_lms_roundtimelimit" ) ) );
 		break;
 
 	case GT_DOUBLE_D:
@@ -2037,21 +2087,37 @@ static void ServerOptions_SetMenuItems( void ) {
 	s_serveroptions.grapple.curvalue = Com_Clamp( 0, 1, trap_Cvar_VariableValue( "g_grapple" ) );
 	// Weapon Rules modes. Only one option can be active at a time.
 	s_serveroptions.weaponMode.curvalue = 0;
-	// Instantgib mode
-	if(trap_Cvar_VariableValue("g_instantgib") != 0 && trap_Cvar_VariableValue("g_weaponArena") == 0 && trap_Cvar_VariableValue("g_elimination") == 0 && trap_Cvar_VariableValue("g_classicMode") == 0)
-		s_serveroptions.weaponMode.curvalue = 1;
-	// Single Weapon mode
-	else if(trap_Cvar_VariableValue("g_instantgib") == 0 && trap_Cvar_VariableValue("g_weaponArena") != 0 && trap_Cvar_VariableValue("g_elimination") == 0 && trap_Cvar_VariableValue("g_classicMode") == 0)
-		s_serveroptions.weaponMode.curvalue = 2;
-	// Classic mode
-	else if(trap_Cvar_VariableValue("g_instantgib") == 0 && trap_Cvar_VariableValue("g_weaponArena") == 0 && trap_Cvar_VariableValue("g_elimination") == 0 && trap_Cvar_VariableValue("g_classicMode") != 0)
-		s_serveroptions.weaponMode.curvalue = 3;
-	// Elimination mode
-	else if(trap_Cvar_VariableValue("g_instantgib") == 0 && trap_Cvar_VariableValue("g_weaponArena") == 0 && trap_Cvar_VariableValue("g_elimination") != 0 && trap_Cvar_VariableValue("g_classicMode") == 0)
-		s_serveroptions.weaponMode.curvalue = 4;
-	// All Weapons mode
-	else
-		s_serveroptions.weaponMode.curvalue = 0;
+	if (UI_IsARoundBasedGametype(s_serveroptions.gametype)) {
+		// Instantgib mode
+		if(trap_Cvar_VariableValue("g_instantgib") != 0 && trap_Cvar_VariableValue("g_weaponArena") == 0 && trap_Cvar_VariableValue("g_classicMode") == 0)
+			s_serveroptions.weaponMode.curvalue = 1;
+		// Single Weapon mode
+		else if(trap_Cvar_VariableValue("g_instantgib") == 0 && trap_Cvar_VariableValue("g_weaponArena") != 0 && trap_Cvar_VariableValue("g_classicMode") == 0)
+			s_serveroptions.weaponMode.curvalue = 2;
+		// Classic mode
+		else if(trap_Cvar_VariableValue("g_instantgib") == 0 && trap_Cvar_VariableValue("g_weaponArena") == 0 && trap_Cvar_VariableValue("g_classicMode") != 0)
+			s_serveroptions.weaponMode.curvalue = 3;
+		// All Weapons Elimination mode
+		else
+			s_serveroptions.weaponMode.curvalue = 0;
+	}
+	else {
+		// Instantgib mode
+		if(trap_Cvar_VariableValue("g_instantgib") != 0 && trap_Cvar_VariableValue("g_weaponArena") == 0 && trap_Cvar_VariableValue("g_elimination") == 0 && trap_Cvar_VariableValue("g_classicMode") == 0)
+			s_serveroptions.weaponMode.curvalue = 1;
+		// Single Weapon mode
+		else if(trap_Cvar_VariableValue("g_instantgib") == 0 && trap_Cvar_VariableValue("g_weaponArena") != 0 && trap_Cvar_VariableValue("g_elimination") == 0 && trap_Cvar_VariableValue("g_classicMode") == 0)
+			s_serveroptions.weaponMode.curvalue = 2;
+		// Classic mode
+		else if(trap_Cvar_VariableValue("g_instantgib") == 0 && trap_Cvar_VariableValue("g_weaponArena") == 0 && trap_Cvar_VariableValue("g_elimination") == 0 && trap_Cvar_VariableValue("g_classicMode") != 0)
+			s_serveroptions.weaponMode.curvalue = 3;
+		// All Weapons Elimination mode
+		else if(trap_Cvar_VariableValue("g_instantgib") == 0 && trap_Cvar_VariableValue("g_weaponArena") == 0 && trap_Cvar_VariableValue("g_elimination") != 0 && trap_Cvar_VariableValue("g_classicMode") == 0)
+			s_serveroptions.weaponMode.curvalue = 4;
+		// All Weapons Standard mode
+		else
+			s_serveroptions.weaponMode.curvalue = 0;
+	}
 	s_serveroptions.weaponArenaWeapon.curvalue = Com_Clamp( 0, 1, trap_Cvar_VariableValue( "g_weaponArenaWeapon" ) );
 	s_serveroptions.awardPushing.curvalue = Com_Clamp( 0, 1, trap_Cvar_VariableValue( "g_awardPushing" ) );
 	Q_strncpyz( s_serveroptions.eliminationRoundTime.field.buffer, UI_Cvar_VariableString( "elimination_roundtime" ), sizeof( s_serveroptions.eliminationRoundTime.field.buffer ) );
@@ -2078,7 +2144,12 @@ static void ServerOptions_SetMenuItems( void ) {
 	Q_strncpyz( s_serveroptions.mapnamebuffer, s_startserver.mapname.string, sizeof (s_serveroptions.mapnamebuffer) );
 	Q_strupr( s_serveroptions.mapnamebuffer );
 	
-	MapInfoGet(s_startserver.mapname.string,s_serveroptions.gametype,&mapinfo);
+	if (ui_developer.integer) {
+		MapInfoGet(s_startserver.mapname.string,s_serveroptions.gametype,&mapinfo, qtrue);
+	}
+	else {
+		MapInfoGet(s_startserver.mapname.string,s_serveroptions.gametype,&mapinfo, qfalse);
+	}
 	
 	// get the player selections initialized
 	ServerOptions_InitPlayerItems();
@@ -2190,7 +2261,7 @@ static void ServerOptions_MenuInit( qboolean multiplayer ) {
 	}
 	if(UI_GametypeUsesFragLimit(s_serveroptions.gametype)) {
 		s_serveroptions.fraglimit.generic.type       = MTYPE_FIELD;
-		if (s_serveroptions.gametype == GT_HARVESTER || s_serveroptions.gametype == GT_DOMINATION || s_serveroptions.gametype == GT_POSSESSION) {
+		if (s_serveroptions.gametype == GT_DOMINATION || s_serveroptions.gametype == GT_POSSESSION) {
 			s_serveroptions.fraglimit.generic.name       = "Score Limit:";
 		}
 		else {
@@ -2205,7 +2276,7 @@ static void ServerOptions_MenuInit( qboolean multiplayer ) {
 	}
 	else /* if(UI_GametypeUsesCaptureLimit(s_serveroptions.gametype)) */ {
 		s_serveroptions.capturelimit.generic.type       = MTYPE_FIELD;
-		if (UI_IsARoundBasedGametype(s_serveroptions.gametype)) {
+		if (UI_IsARoundBasedGametype(s_serveroptions.gametype) || s_serveroptions.gametype == GT_HARVESTER) {
 			s_serveroptions.capturelimit.generic.name       = "Score Limit:";
 		}
 		else {
