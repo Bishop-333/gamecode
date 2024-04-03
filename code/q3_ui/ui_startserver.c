@@ -403,8 +403,12 @@ static void StartServer_GametypeEvent( void* ptr, int event ) {
 	}
 	for( i = 0; i < count; i++ ) {
 		info = UI_GetArenaInfoByNumber( i );
-		MapInfoGet(Info_ValueForKey(info, "map"), gametype_remap[s_startserver.gametype.curvalue], &mapinfo);
-
+		if (ui_developer.integer) {
+			MapInfoGet(Info_ValueForKey(info, "map"), gametype_remap[s_startserver.gametype.curvalue], &mapinfo, qtrue);
+		}
+		else {
+			MapInfoGet(Info_ValueForKey(info, "map"), gametype_remap[s_startserver.gametype.curvalue], &mapinfo, qfalse);
+		}
 		gamebits = GametypeBits( Info_ValueForKey( info, "type") );
 		for ( j=0; j< GT_MAX_GAME_TYPE; ++j) {
 			if (mapinfo.gametypeSupported[j]=='y' || mapinfo.gametypeSupported[j]=='Y') {
@@ -1070,16 +1074,19 @@ static void ServerOptions_Start( void ) {
 	case GT_ELIMINATION:
 		trap_Cvar_SetValue( "ui_elimination_scorelimit", capturelimit );
 		trap_Cvar_SetValue( "ui_elimination_timelimit", timelimit );
+		trap_Cvar_SetValue( "ui_elimination_roundtimelimit", eliminationRoundTime );
 		break;
 
 	case GT_CTF_ELIMINATION:
 		trap_Cvar_SetValue( "ui_ctf_elimination_scorelimit", capturelimit );
 		trap_Cvar_SetValue( "ui_ctf_elimination_timelimit", timelimit );
+		trap_Cvar_SetValue( "ui_ctf_elimination_roundtimelimit", eliminationRoundTime );
 		break;
 
 	case GT_LMS:
 		trap_Cvar_SetValue( "ui_lms_scorelimit", capturelimit );
 		trap_Cvar_SetValue( "ui_lms_timelimit", timelimit );
+		trap_Cvar_SetValue( "ui_lms_roundtimelimit", eliminationRoundTime );
 		break;
 
 	case GT_DOUBLE_D:
@@ -2037,16 +2044,19 @@ static void ServerOptions_SetMenuItems( void ) {
 	case GT_ELIMINATION:
 		Com_sprintf( s_serveroptions.capturelimit.field.buffer, 4, "%i", (int)Com_Clamp( 0, 999, trap_Cvar_VariableValue( "ui_elimination_scorelimit" ) ) );
 		Com_sprintf( s_serveroptions.timelimit.field.buffer, 4, "%i", (int)Com_Clamp( 0, 999, trap_Cvar_VariableValue( "ui_elimination_timelimit" ) ) );
+		Com_sprintf( s_serveroptions.eliminationRoundTime.field.buffer, 4, "%i", (int)Com_Clamp( 0, 999, trap_Cvar_VariableValue( "ui_elimination_roundtimelimit" ) ) );
 		break;
 
 	case GT_CTF_ELIMINATION:
 		Com_sprintf( s_serveroptions.capturelimit.field.buffer, 4, "%i", (int)Com_Clamp( 0, 999, trap_Cvar_VariableValue( "ui_ctf_elimination_scorelimit" ) ) );
 		Com_sprintf( s_serveroptions.timelimit.field.buffer, 4, "%i", (int)Com_Clamp( 0, 999, trap_Cvar_VariableValue( "ui_ctf_elimination_timelimit" ) ) );
+		Com_sprintf( s_serveroptions.eliminationRoundTime.field.buffer, 4, "%i", (int)Com_Clamp( 0, 999, trap_Cvar_VariableValue( "ui_ctf_elimination_roundtimelimit" ) ) );
 		break;
 
 	case GT_LMS:
 		Com_sprintf( s_serveroptions.capturelimit.field.buffer, 4, "%i", (int)Com_Clamp( 0, 999, trap_Cvar_VariableValue( "ui_lms_scorelimit" ) ) );
 		Com_sprintf( s_serveroptions.timelimit.field.buffer, 4, "%i", (int)Com_Clamp( 0, 999, trap_Cvar_VariableValue( "ui_lms_timelimit" ) ) );
+		Com_sprintf( s_serveroptions.eliminationRoundTime.field.buffer, 4, "%i", (int)Com_Clamp( 0, 999, trap_Cvar_VariableValue( "ui_lms_roundtimelimit" ) ) );
 		break;
 
 	case GT_DOUBLE_D:
@@ -2134,7 +2144,12 @@ static void ServerOptions_SetMenuItems( void ) {
 	Q_strncpyz( s_serveroptions.mapnamebuffer, s_startserver.mapname.string, sizeof (s_serveroptions.mapnamebuffer) );
 	Q_strupr( s_serveroptions.mapnamebuffer );
 	
-	MapInfoGet(s_startserver.mapname.string,s_serveroptions.gametype,&mapinfo);
+	if (ui_developer.integer) {
+		MapInfoGet(s_startserver.mapname.string,s_serveroptions.gametype,&mapinfo, qtrue);
+	}
+	else {
+		MapInfoGet(s_startserver.mapname.string,s_serveroptions.gametype,&mapinfo, qfalse);
+	}
 	
 	// get the player selections initialized
 	ServerOptions_InitPlayerItems();
@@ -2246,7 +2261,7 @@ static void ServerOptions_MenuInit( qboolean multiplayer ) {
 	}
 	if(UI_GametypeUsesFragLimit(s_serveroptions.gametype)) {
 		s_serveroptions.fraglimit.generic.type       = MTYPE_FIELD;
-		if (s_serveroptions.gametype == GT_HARVESTER || s_serveroptions.gametype == GT_DOMINATION || s_serveroptions.gametype == GT_POSSESSION) {
+		if (s_serveroptions.gametype == GT_DOMINATION || s_serveroptions.gametype == GT_POSSESSION) {
 			s_serveroptions.fraglimit.generic.name       = "Score Limit:";
 		}
 		else {
@@ -2261,7 +2276,7 @@ static void ServerOptions_MenuInit( qboolean multiplayer ) {
 	}
 	else /* if(UI_GametypeUsesCaptureLimit(s_serveroptions.gametype)) */ {
 		s_serveroptions.capturelimit.generic.type       = MTYPE_FIELD;
-		if (UI_IsARoundBasedGametype(s_serveroptions.gametype)) {
+		if (UI_IsARoundBasedGametype(s_serveroptions.gametype) || s_serveroptions.gametype == GT_HARVESTER) {
 			s_serveroptions.capturelimit.generic.name       = "Score Limit:";
 		}
 		else {

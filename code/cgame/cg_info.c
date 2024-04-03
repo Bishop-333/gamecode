@@ -130,9 +130,10 @@ void CG_LoadingClient( int clientNum ) {
 	Q_strncpyz( personality, Info_ValueForKey( info, "n" ), sizeof(personality) );
 	Q_CleanStr( personality );
 
-	if( cgs.gametype == GT_SINGLE_PLAYER ) {
+	// We don't use character announcements, so this prevents console spamming.
+	/*if( cgs.gametype == GT_SINGLE_PLAYER ) {
 		trap_S_RegisterSound( va( "sound/player/announce/%s.wav", personality ), qtrue );
-	}
+	}*/
 
 	CG_LoadingString( personality );
 }
@@ -300,14 +301,16 @@ void CG_DrawInformation( void ) {
 				UI_CENTER|UI_SMALLFONT|UI_DROPSHADOW, colorWhite );
 			y += PROP_HEIGHT;
 		}
+		return;
 	}
-	else /* (CG_GametypeUsesCaptureLimit(cgs.gametype)) */ {
+	if (CG_GametypeUsesCaptureLimit(cgs.gametype)) {
 		value = atoi( Info_ValueForKey( info, "capturelimit" ) );
 		if ( value ) {
 			UI_DrawProportionalString( 320, y, va( "capturelimit %i", value ),
 				UI_CENTER|UI_SMALLFONT|UI_DROPSHADOW, colorWhite );
 			y += PROP_HEIGHT;
 		}
+		return;
 	}
 }
 

@@ -1212,7 +1212,7 @@ static float CG_DrawCountdownTimer(float y) {
 	//msec = cg.time - cgs.levelStartTime;
 	if (cg.time > rst) //We are started
 	{
-		if (cgs.gametype == GT_DOUBLE_D || cgs.gametype == GT_OBELISK) {
+		if (cgs.gametype == GT_DOUBLE_D) {
 			return y;
 		}
 		msec = cgs.roundtime * 1000 - (cg.time - rst);
@@ -1640,7 +1640,7 @@ static void CG_DrawUpperRight(stereoFrame_t stereoFrame) {
 	if (cg_drawFPS.integer && (stereoFrame == STEREO_CENTER || stereoFrame == STEREO_RIGHT)) {
 		y = CG_DrawFPS(y);
 	}
-	if (CG_IsARoundBasedGametype(cgs.gametype) || cgs.gametype == GT_DOUBLE_D || cgs.gametype == GT_OBELISK) {
+	if (CG_IsARoundBasedGametype(cgs.gametype) || cgs.gametype == GT_DOUBLE_D) {
 		y = CG_DrawCountdownTimer(y);
 		/*if (cgs.clientinfo[ cg.clientNum ].isDead)
 			y = CG_DrawEliminationDeathMessage( y);*/
@@ -1782,15 +1782,28 @@ static float CG_DrawScores(float y) {
 			CG_DrawSmallString(x, y - 28, s, 1.0F);
 		}
 
-		if (CG_GametypeUsesFragLimit(cgs.gametype) && cgs.fraglimit) {
-			s = va("%2i", cgs.fraglimit);
+		if (CG_GametypeUsesFragLimit(cgs.gametype)) {
+			if (cgs.fraglimit) {
+				s = va("%2i", cgs.fraglimit);
+			}
+			else {
+				s = va("0");
+			}
+			w = CG_DrawStrlen(s) * BIGCHAR_WIDTH + 8;
+			x -= w;
+			CG_DrawBigString(x + 4, y, s, 1.0F);
 		}
-		else /*if (CG_GametypeUsesCaptureLimit(cgs.gametype) && cgs.capturelimit)*/ {
-			s = va("%2i", cgs.capturelimit);
+		if (CG_GametypeUsesCaptureLimit(cgs.gametype)) {
+			if (cgs.capturelimit) {
+				s = va("%2i", cgs.capturelimit);
+			}
+			else {
+				s = va("0");
+			}
+			w = CG_DrawStrlen(s) * BIGCHAR_WIDTH + 8;
+			x -= w;
+			CG_DrawBigString(x + 4, y, s, 1.0F);
 		}
-		w = CG_DrawStrlen(s) * BIGCHAR_WIDTH + 8;
-		x -= w;
-		CG_DrawBigString(x + 4, y, s, 1.0F);
 	}
 	else {
 		qboolean spectator;
@@ -1846,15 +1859,28 @@ static float CG_DrawScores(float y) {
 			CG_DrawBigString(x + 4, y, s, 1.0F);
 		}
 
-		if (CG_GametypeUsesFragLimit(cgs.gametype) && cgs.fraglimit) {
-			s = va("%2i", cgs.fraglimit);
+		if (CG_GametypeUsesFragLimit(cgs.gametype)) {
+			if (cgs.fraglimit) {
+				s = va("%2i", cgs.fraglimit);
+			}
+			else {
+				s = va("0");
+			}
+			w = CG_DrawStrlen(s) * BIGCHAR_WIDTH + 8;
+			x -= w;
+			CG_DrawBigString(x + 4, y, s, 1.0F);
 		}
-		else /*if (CG_GametypeUsesCaptureLimit(cgs.gametype) && cgs.capturelimit)*/ {
-			s = va("%2i", cgs.capturelimit);
+		if (CG_GametypeUsesCaptureLimit(cgs.gametype)) {
+			if (cgs.capturelimit) {
+				s = va("%2i", cgs.capturelimit);
+			}
+			else {
+				s = va("0");
+			}
+			w = CG_DrawStrlen(s) * BIGCHAR_WIDTH + 8;
+			x -= w;
+			CG_DrawBigString(x + 4, y, s, 1.0F);
 		}
-		w = CG_DrawStrlen(s) * BIGCHAR_WIDTH + 8;
-		x -= w;
-		CG_DrawBigString(x + 4, y, s, 1.0F);
 	}
 
 	return y1 - 8;
